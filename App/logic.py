@@ -1,9 +1,16 @@
 import time
+import os
+
+data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/Challenge-3'
 
 def new_logic():
     """
     Crea el catalogo para almacenar las estructuras de datos
     """
+    analyzer = {
+        "flights": None
+    }
+    analyzer["flights"] = 
     #TODO: Llama a las funciónes de creación de las estructuras de datos
     pass
 
