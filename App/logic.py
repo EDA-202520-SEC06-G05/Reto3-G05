@@ -15,10 +15,8 @@ def new_logic():
     """
     analyzer = {
         "flights": None,
-        "flights_rbt": None
     }
     analyzer["flights"] = lp.new_map(304000, 0.7, None)
-    analyzer["flights_rbt"] = rbt.new_map()
     return analyzer
     #TODO: Llama a las funciónes de creación de las estructuras de datos
 
@@ -28,19 +26,18 @@ def load_data(catalog, filename):
     """
     Carga los datos del reto
     """
+    flight = load_flights(catalog)
+    return flight
     # TODO: Realizar la carga de datos
-    pass
 
 def load_flights(analyzer):
     
     inicio = get_time()
     flight_total = 0
-    flights_map = analyzer["flights"]
-    flights_rbt = analyzer["flights_rbt"]
-    tree = rbt.new_map()
+    flights_rbt = rbt.new_map()
     
     flight_file = data_dir + "/flights_small.csv"
-    input_file = csv.DictReader(open(flight_file, encoding="utf-8", delimeter=","))
+    input_file = csv.DictReader(open(flight_file, encoding="utf-8"), delimeter=",")
     for flight in input_file:
         add_flights(analyzer, flight)
         flight_total += 1
@@ -78,7 +75,7 @@ def load_flights(analyzer):
     if last_start < 0:
         last_start = 0
         
-    i2= 0
+    i2= last_start
     while i2 < total:
         if i2 >= last_start:
             elem = sl.get_element(ordered, i2)
@@ -96,7 +93,7 @@ def load_flights(analyzer):
         
 def add_flights(analyzer, fligh):
     flight_map = analyzer["flights"]
-    key = flight_map["id"]
+    key = int(fligh["id"])
     lp.put(flight_map, key, fligh)
     return analyzer    
     
