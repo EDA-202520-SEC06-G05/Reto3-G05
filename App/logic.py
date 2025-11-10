@@ -126,7 +126,7 @@ def req_2(catalog, code, min, max):
                 arr_time_h, arr_time_s = arr_time.split(":")
                 sched_arr_time_h, sched_arr_time_s = sched_arr_time.split(":")
                
-                arr_time_minutes = int(arr_time_h) * 60 + int(arr_time_s)
+                arr_time_minutes = int(arr_time_h) *60 + int(arr_time_s)
                 sched_arr_time_minutes = int(sched_arr_time_h) *60 + int(sched_arr_time_s)
                
                 delay = arr_time_minutes - sched_arr_time_minutes
@@ -142,7 +142,17 @@ def req_2(catalog, code, min, max):
                     date_int = int(y) * 10000 + int(m)*100 + int(d)
                     arr_int = int(arr_time_h)* 100 + int(arr_time_s)
                     key = delay * 100000000 + date_int * 10000 + arr_int
-                    rbt.put(filtered_rbt, key, flight)
+                    req_flight = {
+                        "id": flight["id"],
+                        "flight": flight["flight"],
+                        "date": flight["date"],
+                        "airline_name": flight["name"],
+                        "airline_code": flight["carrier"],
+                        "origin": flight["origin"],
+                        "dest": flight["dest"],
+                        "early_minutes": delay
+                    }
+                    rbt.put(filtered_rbt, key, req_flight)
                     
     ordered = rbt.value_set(filtered_rbt)
     total = ordered["size"]
