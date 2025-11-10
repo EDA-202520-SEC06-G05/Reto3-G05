@@ -109,12 +109,82 @@ def req_1(catalog):
     pass
 
 
-def req_2(catalog):
+def req_2(catalog, code, min, max):
+    
+    start = get_time()
+    filtered_rbt = rbt.new_map()
+    filtered_no = 0
+    table = catalog["flights"]["table"]
+    for entry in table["elements"]:
+        if entry["value"] is not None:
+            flight = entry["value"]
+            
+            if flight["dest"] != "" and flight["arr_time"] != "" and flight["sched_arr_time"] != "":
+                arr_time = str(flight["arr_time"])
+                sched_arr_time = str(flight["sched_arr_time"])
+               
+                arr_time_h, arr_time_s = arr_time.split(":")
+                sched_arr_time_h, sched_arr_time_s = sched_arr_time.split(":")
+               
+                arr_time_minutes = int(arr_time_h) * 60 + int(arr_time_s)
+                sched_arr_time_minutes = int(sched_arr_time_h) *60 + int(sched_arr_time_s)
+               
+                delay = arr_time_minutes - sched_arr_time_minutes
+                if delay < -720:
+                    delay += 1440
+                elif delay > 720:
+                    delay -= 1440
+                    
+                if (flight["dest"] == code) and (min <= delay <= max):
+                    filtered_no += 1
+                    flight_date = str(flight["date"])
+                    y, m ,d = flight_date.split("-")
+                    date_int = int(y) * 10000 + int(m)*100 + int(d)
+                    arr_int = int(arr_time_h)* 100 + int(arr_time_s)
+                    key = delay * 100000000 + date_int * 10000 + arr_int
+                    rbt.put(filtered_rbt, key, flight)
+                    
+    ordered = rbt.value_set(filtered_rbt)
+    total = ordered["size"]
+    
+    if total > 10:
+        first5 = sl.new_list()
+        last5 = sl.new_list()
+        i = 0
+        while i < total:
+            if i < 5:
+                element = sl.get_element(ordered, i)
+                sl.add_last(first5, element)
+            i += 1
+    
+        last_start = total -5
+        if last_start < 0:
+            last_start = 0
+        
+        i2= last_start
+        while i2 < total:
+            if i2 >= last_start:
+                elem = sl.get_element(ordered, i2)
+                sl.add_last(last5, elem)
+            i2 += 1
+        fin = get_time()
+        return {
+            "time_ms": fin - start,
+            "filtered_number": filtered_no,
+            "first5": first5,
+            "last5": last5 
+        }
+    fin = get_time()
+    return {
+        "time_ms": fin - start,
+        "filtered_number": filtered_no,
+        "filtered_flights": ordered
+    }
     """
     Retorna el resultado del requerimiento 2
     """
     # TODO: Modificar el requerimiento 2
-    pass
+    
 
 
 def req_3(catalog):
