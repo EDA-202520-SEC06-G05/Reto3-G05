@@ -101,15 +101,73 @@ def add_flights(analyzer, fligh):
     
     
 # Funciones de consulta sobre el catálogo
-
-
-def req_1(catalog):
-    """
-    Retorna el resultado del requerimiento 1
-    """
-    # TODO: Modificar el requerimiento 1
-    pass
-
+def req_1(catalog, airline_code, min_delay, max_delay):
+    start=get_time()
+    filtered_rbt=rbt.new_map()
+    filtered_no=0
+    table= catalog["flights"]["table"]
+    for entry in table["elements"]:
+        if entry["value"] is not None:
+            flight= entry["value"]
+            if flight["carrier"] != "" and flight["dep_time"]!= "" and flight["sched_dep_time"]!= "":
+                dep_time= str(flight["dep_time"])
+                sched_dep_time= str(flight["sched_dep_time"])
+                dep_h,dep_m= dep_time.split(":")
+                sched_h,sched_m= sched_dep_time.split(":")
+                dep_minutes= int(dep_h)*60 + int(dep_m)
+                sched_minutes= int(sched_h)*60 + int(sched_m)
+                delay= dep_minutes-sched_minutes
+                if delay<-720:
+                    delay+= 1440
+                elif delay> 720:
+                    delay-= 1440
+                if (flight["carrier"]== airline_code) and (min_delay <= delay <= max_delay):
+                    filtered_no+= 1
+                    flight_date= str(flight["date"])
+                    y, m, d= flight_date.split("-")
+                    date_int= int(y)*10000 + int(m)*100 + int(d)
+                    dep_int= int(dep_h)*100 + int(dep_m)
+                    key= delay*100000000 + date_int*10000 + dep_int
+                    req_flight={
+                        "id": flight["id"],
+                        "flight": flight["flight"],
+                        "date": flight["date"],
+                        "airline_name": flight["name"],
+                        "airline_code": flight["carrier"],
+                        "origin": flight["origin"],
+                        "dest": flight["dest"],
+                        "delay_minutes": delay}
+                    rbt.put(filtered_rbt, key, req_flight)
+    ordered= rbt.value_set(filtered_rbt)
+    total= ordered["size"]
+    if total> 10:
+        first5= sl.new_list()
+        last5= sl.new_list()
+        i= 0
+        while i< total:
+            if i<5:
+                element = sl.get_element(ordered, i)
+                sl.add_last(first5, element)
+            i+= 1
+        last_start= total - 5
+        if last_start< 0:
+            last_start= 0
+        i2= last_start
+        while i2< total:
+            elem= sl.get_element(ordered, i2)
+            sl.add_last(last5, elem)
+            i2+= 1
+        fin= get_time()
+        return{
+            "time_ms": fin - start,
+            "filtered_number": filtered_no,
+            "first5": first5,
+            "last5": last5}
+    fin= get_time()
+    return{
+        "time_ms": fin - start,
+        "filtered_number": filtered_no,
+        "filtered_flights": ordered}
 
 def req_2(catalog, code, min, max):
     
