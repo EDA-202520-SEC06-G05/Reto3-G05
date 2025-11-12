@@ -390,6 +390,10 @@ def req_4(catalog,date,time,n):
         for flight in airline[key]["flights"]["elements"]:
             if flight["distance"] < minor["distance"]:
                 minor = flight
+            elif flight["distance"] == minor["distance"]:
+                if flight["date programmer"] > minor["date programmer"]:
+                    minor = flight
+    
         
         dict_airline = {
             "airline_code": key,
@@ -408,6 +412,20 @@ def req_4(catalog,date,time,n):
             rbt.put(tree,airline[key]["flights"]["size"], array)
     
     values = rbt.value_set(tree)
+    i = 0 
+    array = al.new_list()
+    while i < values["size"]:
+        elements = sl.get_element(values,i)
+        if elements["size"] > 1:
+            if elements["elements"][0]["airline_code"][0] < elements["elements"][1]["airline_code"][0]:
+                al.add_last(array,elements["elements"][0])
+            else:
+                al.add_last(array,elements["elements"][1])
+        else:
+            al.add_last(array,elements["elements"][0])
+    al.sub_list(array, 0 ,n)
+    result["airports"] = array
+    return result
     "Falta terminar el ultimo filtro que es por letra y seleccionar los n primeros y sale"
     
     # TODO: Modificar el requerimiento 4
