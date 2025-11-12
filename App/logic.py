@@ -1,9 +1,11 @@
 import time
 import os
+import math
 from DataStructures.List import single_linked_list as sl
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.Tree import red_black_tree as rbt
 from DataStructures.Tree import rbt_node as rn
+from DataStructures.Priority_queue import priority_queue as pq
 import csv
 
 
@@ -89,7 +91,7 @@ def load_flights(analyzer):
         "primeros5": first5,
         "ultimos5": last5
     }                        
-    # Falta eliminar las llaves que no estan pidiendo en el requerimiemnto            
+    # Falta eliminar las llaves que no estan pidiendo en el requerimiemnto #############################################################################           
         
 def add_flights(analyzer, fligh):
     flight_map = analyzer["flights"]
@@ -220,12 +222,125 @@ def req_5(catalog):
     # TODO: Modificar el requerimiento 5
     pass
 
-def req_6(catalog):
+def req_6(catalog, fech_min, fech_max, dist_min, dist_max, m):
     """
     Retorna el resultado del requerimiento 6
     """
+    start = get_time()
+    airline_rbt = rbt.new_map()
+    
+    table = catalog["flights"]["table"]
+    for entry in table["elements"]:
+        if entry["value"] is not None:
+            flight = entry["value"]
+            if (flight["dep_time"] != "") and (flight["sched_dep_time"] != "") and (flight["distance"] != "") and (flight["date"]!= ""):
+                
+                date = str(flight["date"])
+                y, m, d = date.split("-")
+                date_int = int(y) * 10000 + int(m)* 100 + int(d)
+                distance = int(flight["distance"])
+                
+                date2 = str(fech_min)
+                y2, m2, d2 = date2.split("-")
+                fecha_min_int = int(y2) * 10000 + int(m2)*100 + int(d2)
+                
+                date3 = str(fech_max)
+                y3, m3, d3 = date3.split("-")
+                fecha_max_int = int(y3) * 10000 + int(m3)*100 + int(d3)
+
+                if (fecha_min_int <= date_int <= fecha_max_int) and (dist_min <= distance <= dist_max):
+                    
+                    dep_time = str(flight["dep_time"])
+                    sched_dep_time = str(flight["sched_dep_time"])
+                
+                    dep_time_h, dep_time_s = dep_time.split(":")
+                    sched_dep_time_h, sched_dep_time_s = sched_dep_time.split(":")
+                
+                    dep_time_minutes = int(dep_time_h)*60 + int(dep_time_s)
+                    sched_dep_time_minutes = int(sched_dep_time_h)*60 + int(sched_dep_time_s)
+                
+                    delay = dep_time_minutes - sched_dep_time_minutes
+                    if delay < -720:
+                        delay += 1440
+                    elif delay > 720:
+                        delay -= 1440
+                    
+                    airline = flight["airline"]
+                    info = rbt.get(airline_rbt, airline)
+                    if info is None:
+                        info = {
+                            "delays": sl.new_list(),
+                            "sum": 0, 
+                            "sum2": 0,
+                            "count": 0
+                        }
+                    rbt.put(airline_rbt, airline, info)
+                    
+                    sl.add_last(info["delays"], {"delay": delay, "flight": flight})
+                    info["sum"] += delay
+                    info["sum2"] += delay * delay
+                    info["count"] += 1
+                    
+    keys = rbt.key_set(airline_rbt)
+    airline_total = keys["size"]
+    
+    pq_heap = pq.new_heap(is_min_pq=True)
+    
+    i = 0
+    while i < airline_total:
+        code = sl.get_element(keys, i)
+        info = rbt.get(airline_rbt, code)
+        
+        if info["count"] > 0:
+            averg = info["sum"] / info["count"]
+            
+            varian = (info["sum2"] / info["count"]) - (averg * averg)
+            if varian < 0:
+                varian = 0
+            deviation = math.sqrt(varian)                      
+            
+            delays = info["delays"]
+            size = delays["size"]
+            best = None
+            best_dif = 1440
+            
+            i2 = 0 
+            while i2 < size:
+                par = sl.get_element(delays, i2)
+                diff = par["delay"] - averg
+                if diff < 0:
+                    diff = -diff
+                if diff < best_dif:
+                    best_dif = diff
+                    best = par
+                i2 += 1
+                
+            pq.insert(pq_heap, deviation, {
+                "airline": code, 
+                "count": info["count"],
+                "avg": averg,
+                "dev": deviation,
+                "closest": best
+            })
+        i += 1
+        
+    result_list = sl.new_list()
+    extracted = 0
+    while extracted < m and not pq.is_empty(pq_heap):
+        element = pq.remove(pq_heap)
+        sl.add_last(result_list, element["value"])
+        extracted +=1
+    
+    end = get_time()
+    
+    return {
+        "time_ms": end - start,
+        "total_airlines": extracted,
+        "airlines": result_list
+    }     
+    
     # TODO: Modificar el requerimiento 6
-    pass
+
 
 
 # Funciones para medir tiempos de ejecucion
