@@ -2,27 +2,27 @@ from DataStructures.Tree import rbt_node as rb
 from DataStructures.List import single_linked_list as sl
 
 def new_map ():
-    rbt = {
-        "root": None,
-        "type": "RBT"
-    }
-    return rbt
+      rbt = {
+         "root": None,
+         "type": "RBT"
+      }
+      return rbt
 
 
 def flip_node_color(node_rbt):
-    if node_rbt is None:
-        return "El nodo es None"
-    elif rb.is_red(node_rbt):
-        rb.change_color(node_rbt,"BLACK")
-    else:
-        rb.change_color(node_rbt,"RED")
-    return node_rbt
+      if node_rbt is None:
+         return "El nodo es None"
+      elif rb.is_red(node_rbt):
+         rb.change_color(node_rbt,"BLACK")
+      else:
+         rb.change_color(node_rbt,"RED")
+      return node_rbt
 
 def flip_colors(node_rbt):
-    flip_node_color(node_rbt)
-    flip_node_color(node_rbt["left"])
-    flip_node_color(node_rbt["right"])
-    return node_rbt
+      flip_node_color(node_rbt)
+      flip_node_color(node_rbt["left"])
+      flip_node_color(node_rbt["right"])
+      return node_rbt
 
 
 def default_compare(key, element):
@@ -98,7 +98,8 @@ def get_node(root, key):
       return get_node(root["right"], key)
    elif rb.get_key(root) > key:
       return get_node(root["left"], key)
-   
+
+
 def get(my_rbt, key):
    if my_rbt["root"] is None:
       return None
@@ -109,12 +110,12 @@ def get(my_rbt, key):
       else:
          return rb.get_value(node)
 
-def contains(my_rbt, key)
+def contains(my_rbt, key):
    if get(my_rbt, key) is None:
       return False
    else:
       return True
-   
+
 def is_empty(my_rbt):
    if my_rbt["root"] is None:
       return True
@@ -146,6 +147,3 @@ def value_set(my_rbt):
    return value_set_tree(my_rbt["root"], value_list)
 
 
-   
-   
-        
