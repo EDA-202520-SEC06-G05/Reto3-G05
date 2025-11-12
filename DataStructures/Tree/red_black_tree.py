@@ -24,7 +24,6 @@ def flip_colors(node_rbt):
       flip_node_color(node_rbt["right"])
       return node_rbt
 
-
 def default_compare(key, element):
    if key == rb.get_key(element):
       return 0
