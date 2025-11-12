@@ -137,7 +137,7 @@ def key_set(my_rbt):
 def value_set_tree(root, value_list):
    
    if root is not None:
-      value_set_tree(root["left"], value_list):
+      value_set_tree(root["left"], value_list)
       sl.add_last(value_list, root["value"])
       value_set_tree(root["right"], value_list)
    return value_list
