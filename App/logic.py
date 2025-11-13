@@ -38,7 +38,7 @@ def load_flights(analyzer):
     flight_total = 0
     flights_rbt = rbt.new_map()
     
-    flight_file = data_dir + "/flights_small.csv" # Aca luego de las pruebas cambiar por filename
+    flight_file = data_dir + "/flights_large.csv" # Aca luego de las pruebas cambiar por filename
     input_file = csv.DictReader(open(flight_file, encoding="utf-8"), delimiter=",")
     
     for flight in input_file:
