@@ -450,15 +450,96 @@ def req_4(catalog,date,time,n):
     "Falta terminar el ultimo filtro que es por letra y seleccionar los n primeros y sale"
     
     # TODO: Modificar el requerimiento 4
-    pass
 
-
-def req_5(catalog):
-    """
-    Retorna el resultado del requerimiento 5
-    """
-    # TODO: Modificar el requerimiento 5
-    pass
+def req_5(catalog,dest_code,date_min,date_max,N):
+    start=get_time()
+    table=catalog["flights"]["table"]
+    airlines_info={}
+    for entry in table["elements"]:
+        if entry["value"] is not None:
+            flight= entry["value"]
+            if (flight["dest"]!= "" and flight["arr_time"]!="" and flight["sched_arr_time"]!="" and 
+                flight["date"]!= "" and flight["carrier"]!= ""):
+                if flight["dest"]== dest_code:
+                    flight_date= str(flight["date"])
+                    y, m, d= flight_date.split("-")
+                    date_int= int(y)* 10000 + int(m)* 100 + int(d)
+                    y1, m1, d1= date_min.split("-")
+                    y2, m2, d2= date_max.split("-")
+                    date_min_int= int(y1)*10000+ int(m1)*100+ int(d1)
+                    date_max_int= int(y2)*10000+ int(m2)*100+ int(d2)
+                    if date_min_int<= date_int<= date_max_int:
+                        arr_time= str(flight["arr_time"])
+                        sched_arr_time=str(flight["sched_arr_time"])
+                        arr_h, arr_m= arr_time.split(":")
+                        sched_h, sched_m=sched_arr_time.split(":")
+                        arr_minutes= int(arr_h)*60+ int(arr_m)
+                        sched_minutes= int(sched_h)*60 + int(sched_m)
+                        diff= arr_minutes- sched_minutes
+                        if diff<-720:
+                            diff+=1440
+                        elif diff>720:
+                            diff-=1440
+                        carrier= flight["carrier"]
+                        if carrier not in airlines_info:
+                            airlines_info[carrier]={
+                                "flights":sl.new_list(),
+                                "total_diff":0,
+                                "total_flights":0,
+                                "total_distance":0,
+                                "total_duration":0}
+                        sl.add_last(airlines_info[carrier]["flights"],flight)
+                        airlines_info[carrier]["total_diff"]+= diff
+                        airlines_info[carrier]["total_distance"]+= int(flight["distance"]) if flight["distance"]!= "" else 0
+                        airlines_info[carrier]["total_duration"]+= int(flight["air_time"]) if flight["air_time"]!= "" else 0
+                        airlines_info[carrier]["total_flights"]+= 1
+    punctual_rbt= rbt.new_map()
+    for carrier,info in airlines_info.items():
+        total_f= info["total_flights"]
+        if total_f>0:
+            avg_diff=info["total_diff"] / total_f
+            avg_distance=info["total_distance"]/ total_f
+            avg_duration=info["total_duration"]/ total_f
+            flights_list=info["flights"]
+            max_dist=-1
+            longest_flight= None
+            for f in flights_list["elements"]:
+                if f["value"] is not None and f["value"]["distance"]!= "":
+                    dist= int(f["value"]["distance"])
+                    if dist> max_dist:
+                        max_dist= dist
+                        longest_flight= f["value"]
+            key = avg_diff* 1000+ord(carrier[0])*10+ord(carrier[-1])
+            data={
+                "airline_code":carrier,
+                "avg_diff":avg_diff,
+                "avg_distance":avg_distance,
+                "avg_duration":avg_duration,
+                "total_flights":total_f,
+                "longest_flight":{
+                    "id": longest_flight["id"],
+                    "flight": longest_flight["flight"],
+                    "date": longest_flight["date"],
+                    "arr_time": longest_flight["arr_time"],
+                    "origin": longest_flight["origin"],
+                    "dest": longest_flight["dest"],
+                    "duration": longest_flight["air_time"]
+                }
+            }
+            rbt.put(punctual_rbt,key,data)
+    ordered=rbt.value_set(punctual_rbt)
+    total=ordered["size"]
+    result_list=sl.new_list()
+    i=0
+    while i< total and i< N:
+        element= sl.get_element(ordered, i)
+        sl.add_last(result_list, element)
+        i+= 1
+    fin= get_time()
+    return{
+        "time_ms":fin-start,
+        "total_airlines":N if N < total else total,
+        "most_punctual":result_list}
 
 def req_6(catalog, fech_min, fech_max, dist_min, dist_max, m):
     """
