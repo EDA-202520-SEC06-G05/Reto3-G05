@@ -62,8 +62,6 @@ def load_flights(analyzer):
         rbt.put(flights_rbt, key_rbt, flight) 
         "Verificar que sea correcto y si el api de rbt lo permite si no volver a la version anterior"
         
-    
-    
     ordered = rbt.value_set(flights_rbt)
     total = ordered["size"]
     
@@ -73,8 +71,20 @@ def load_flights(analyzer):
     i = 0
     while i < total:
         if i < 5:
-            element = sl.get_element(ordered, i)
-            sl.add_last(first5, element)
+            flight = sl.get_element(ordered, i)
+            clean_return = {
+                "date": flight["date"],
+                "dep_time": flight["dep_time"],
+                "arr_time": flight["arr_time"],
+                "airline_code": flight["carrier"],
+                "airline_name": flight["airline"],
+                "tailnum": flight["tailnum"],
+                "origin": flight["origin"],
+                "dest": flight["dest"],
+                "air_time": flight["air_time"],
+                "distance": flight["distance"]
+            }
+            sl.add_last(first5, clean_return)
         i += 1
     
     last_start = total -5
@@ -84,9 +94,21 @@ def load_flights(analyzer):
     i2= last_start
     while i2 < total:
         if i2 >= last_start:
-            elem = sl.get_element(ordered, i2)
-            sl.add_last(last5, elem)
-        i2 += 1
+            flight = sl.get_element(ordered, i2)
+            clean_return = {
+                "date": flight["date"],
+                "dep_time": flight["dep_time"],
+                "arr_time": flight["arr_time"],
+                "airline_code": flight["carrier"],
+                "airline_name": flight["airline"],
+                "tailnum": flight["tailnum"],
+                "origin": flight["origin"],
+                "dest": flight["dest"],
+                "air_time": flight["air_time"],
+                "distance": flight["distance"]
+            }
+            sl.add_last(last5, clean_return)
+        i2 +=1
     fin = get_time()
     
     return {
@@ -95,7 +117,6 @@ def load_flights(analyzer):
         "primeros5": first5,
         "ultimos5": last5
     }                        
-    # Falta eliminar las llaves que no estan pidiendo en el requerimiemnto #############################################################################           
         
 def add_flights(analyzer, fligh):
     flight_map = analyzer["flights"]
