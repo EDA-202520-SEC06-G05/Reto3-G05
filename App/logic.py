@@ -345,37 +345,37 @@ def req_3(catalog, airline, code_airport , distance):
     for each in table["elements"]:
         if each != None:
             single_flight = each["value"]
-            if single_flight["carrier"] == airline and single_flight["dest"] == code_airport and distance[0] <=  int(single_flight["distance"]) <= distance[1]:
-                result["total_flights"] += 1 
-                
-                if rbt.contains(tree, int(single_flight["distance"])):
-                    value_array = rbt.get(tree, int(single_flight["distance"]))
-                    dict_flight = {
-                        "id": single_flight["id"],
-                        "flight": single_flight["flight"],
-                        "date": single_flight["date"],
-                        "airline_name": single_flight["name"],
-                        "airline_code": single_flight["carrier"],
-                        "origin": single_flight["origin"],
-                        "dest": single_flight["dest"],
-                        "distance": int(single_flight["distance"])
-                    }
-                    al.add_last(value_array, dict_flight)
-                    rbt.put(tree, int(single_flight["distance"]), value_array)
-                else:
-                    array = al.new_list()
-                    dict_flight = {
-                        "id": single_flight["id"],
-                        "flight": single_flight["flight"],
-                        "date": single_flight["date"],
-                        "airline_name": single_flight["name"],
-                        "airline_code": single_flight["carrier"],
-                        "origin": single_flight["origin"],
-                        "dest": single_flight["dest"],
-                        "distance": int(single_flight["distance"]),
-                    }
-                    al.add_last(array,dict_flight)
-                    rbt.put(tree, int(single_flight["distance"]),array)
+            if single_flight["carrier"] != "Unknown" and  single_flight["dest"] != "Unknown" and single_flight["distance"] != "Unknown":
+                if single_flight["carrier"] == airline and single_flight["dest"] == code_airport and distance[0] <=  int(single_flight["distance"]) <= distance[1]:
+                    result["total_flights"] += 1 
+                    if rbt.contains(tree, int(single_flight["distance"])):
+                        value_array = rbt.get(tree, int(single_flight["distance"]))
+                        dict_flight = {
+                            "id": single_flight["id"],
+                            "flight": single_flight["flight"],
+                            "date": single_flight["date"],
+                            "airline_name": single_flight["name"],
+                            "airline_code": single_flight["carrier"],
+                            "origin": single_flight["origin"],
+                            "dest": single_flight["dest"],
+                            "distance": int(single_flight["distance"])
+                        }
+                        al.add_last(value_array, dict_flight)
+                        rbt.put(tree, int(single_flight["distance"]), value_array)
+                    else:
+                        array = al.new_list()
+                        dict_flight = {
+                            "id": single_flight["id"],
+                            "flight": single_flight["flight"],
+                            "date": single_flight["date"],
+                            "airline_name": single_flight["name"],
+                            "airline_code": single_flight["carrier"],
+                            "origin": single_flight["origin"],
+                            "dest": single_flight["dest"],
+                            "distance": int(single_flight["distance"]),
+                        }
+                        al.add_last(array,dict_flight)
+                        rbt.put(tree, int(single_flight["distance"]),array)
     
     def default_criteria (flight1, flight2):
         date_str = flight1["date"]              
@@ -411,7 +411,6 @@ def req_3(catalog, airline, code_airport , distance):
 
     values = rbt.value_set(tree)
     if values["size"] > 0:
-        #Modificar para obtener los primeros y ultimos 5 vuelos no todos
             first = al.new_list()
             i = 0
             centinela = True
@@ -547,10 +546,12 @@ def req_4(catalog,date,time,n):
     return result
     # TODO: Modificar el requerimiento 4
 
-def req_5(catalog,dest_code,date_min,date_max,N):
+def req_5(catalog,dest_code,date,N):
     start=get_time()
     table=catalog["flights"]["table"]
     airlines_info={}
+    date_min = date[0] 
+    date_max = date[1]
     for entry in table["elements"]:
         if entry["value"] is not None:
             flight= entry["value"]
@@ -637,13 +638,16 @@ def req_5(catalog,dest_code,date_min,date_max,N):
         "total_airlines":N if N < total else total,
         "most_punctual":result_list}
 
-def req_6(catalog, fech_min, fech_max, dist_min, dist_max, m):
+def req_6(catalog, date, distance, m):
     """
     Retorna el resultado del requerimiento 6
     """
     start = get_time()
     airline_rbt = rbt.new_map()
-    
+    fech_min = date[0]
+    fech_max = date[1]
+    dist_min = distance[0]
+    dist_max = distance[1]
     table = catalog["flights"]["table"]
     for entry in table["elements"]:
         if entry["value"] is not None:
