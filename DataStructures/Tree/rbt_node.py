@@ -1,7 +1,6 @@
 RED = 0
 BLACK = 1
 
-
 def new_node(key, value, color=RED):
     """
     Crea un nuevo nodo para un árbol rojo-negro  y lo retorna.
@@ -42,7 +41,6 @@ def is_red(my_node):
         Exception
     """
     return my_node["color"] == RED
-
 
 def get_value(my_node):
     """Retorna el valor asociado a una pareja llave valor

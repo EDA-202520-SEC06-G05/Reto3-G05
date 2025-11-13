@@ -7,11 +7,11 @@ from DataStructures.Map import map_linear_probing as lp
 from DataStructures.Tree import red_black_tree as rbt
 from DataStructures.Priority_queue import priority_queue as pq
 import csv
-
+from DataStructures.Tree import rbt_node as rb
 
 data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/Challenge-3'
 # Funciones para la carga de datos
-def new_logic():
+def new_logic(data_structure):
     """
     Crea el catalogo para almacenar las estructuras de datos
     """
@@ -24,15 +24,15 @@ def new_logic():
     return catalog
     #TODO: Llama a las funciónes de creación de las estructuras de datos
 
-def load_data(catalog, filename):
+def load_data(catalog):
     """
     Carga los datos del reto
     """
-    flight = load_flights(catalog,filename)
+    flight = load_flights(catalog)
     return flight
     # TODO: Realizar la carga de datos
 
-def load_flights(analyzer,filename):
+def load_flights(analyzer):
     
     inicio = get_time()
     flight_total = 0
@@ -43,9 +43,8 @@ def load_flights(analyzer,filename):
     
     for flight in input_file:
         for each in flight:
-            if flight[each] is None or flight[each] == "":
+            if flight[each] is None or flight[each] == " ":
                 flight[each] = "Unknown"
-                
         add_flights(analyzer, flight)
         flight_total += 1
         if flight["date"] != "Unknown" and flight["sched_dep_time"] != "Unknown":
@@ -66,7 +65,6 @@ def load_flights(analyzer,filename):
             if rbt.contains(flights_rbt, key_rbt):
                 array = rbt.get(flights_rbt, key_rbt)
                 al.add_last(array, flight)
-                rbt.put(flights_rbt, key_rbt, array)
             else:
                 array = al.new_list()
                 al.add_last(array, flight)
@@ -87,7 +85,7 @@ def load_flights(analyzer,filename):
                     "dep_time": flight["elements"][0]["dep_time"],
                     "arr_time": flight["elements"][0]["arr_time"],
                     "airline_code": flight["elements"][0]["carrier"],
-                    "airline_name": flight["elements"][0]["airline"],
+                    "airline_name": flight["elements"][0]["name"],
                     "tailnum": flight["elements"][0]["tailnum"],
                     "origin": flight["elements"][0]["origin"],
                     "dest": flight["elements"][0]["dest"],
@@ -102,7 +100,7 @@ def load_flights(analyzer,filename):
                     "dep_time": each["dep_time"],
                     "arr_time": each["arr_time"],
                     "airline_code": each["carrier"],
-                    "airline_name": each["airline"],
+                    "airline_name": each["name"],
                     "tailnum": each["tailnum"],
                     "origin": each["origin"],
                     "dest": each["dest"],
@@ -129,7 +127,7 @@ def load_flights(analyzer,filename):
                 "dep_time": flight["elements"][0]["dep_time"],
                 "arr_time": flight["elements"][0]["arr_time"],
                 "airline_code": flight["elements"][0]["carrier"],
-                "airline_name": flight["elements"][0]["airline"],
+                "airline_name": flight["elements"][0]["name"],
                 "tailnum": flight["elements"][0]["tailnum"],
                 "origin": flight["elements"][0]["origin"],
                 "dest": flight["elements"][0]["dest"],
@@ -144,7 +142,7 @@ def load_flights(analyzer,filename):
                 "dep_time": each["dep_time"],
                 "arr_time": each["arr_time"],
                 "airline_code": each["carrier"],
-                "airline_name": each["airline"],
+                "airline_name": each["name"],
                 "tailnum": each["tailnum"],
                 "origin": each["origin"],
                 "dest": each["dest"],
@@ -169,8 +167,9 @@ def load_flights(analyzer,filename):
 def add_flights(catalog, fligh):
     
     flight_map = catalog["flights"]
-    key = int(fligh["id"])
-    lp.put(flight_map, key, fligh)
+    if fligh["id"] != "Unknown":
+        key = int(fligh["id"])
+        lp.put(flight_map, key, fligh)
     return catalog    
 
 # Funciones de consulta sobre el catálogo

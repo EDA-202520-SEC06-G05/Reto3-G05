@@ -79,7 +79,7 @@ def insert_node(root, key, value):
       if rb.is_red(root["left"]) and rb.is_red(root["right"]):
          flip_colors(root)
    else:
-      return rb.new_rbt_node(key, value, 1)
+      return rb.new_node(key, value, "RED")
    
    root["size"] = size(root["left"]) + size(root["right"]) +1
    return root
