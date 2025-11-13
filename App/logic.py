@@ -468,38 +468,39 @@ def req_4(catalog,date,time,n):
     map = catalog["flights"]
     table = map["table"]
     for each in table["elements"]:
-        if each !=None:
+        if each !=None :
             single_flight = each["value"]
-            if date[0] <= single_flight["date"] <= date[1] and time[0] <= single_flight["sched_dep_time"] <= time[1]:
-                result["total_airports"] += 1
-                if single_flight["carrier"] in airline:
-                    array =airline[single_flight["carrier"]["flights"]]
-                    dict_flight = {
-                        "id": single_flight["id"],
-                        "flight": single_flight["flight"],
-                        "date programmer":single_flight["date"]+ "-" + single_flight["sched_dep_time"],
-                        "origin": single_flight["origin"],
-                        "dest": single_flight["dest"],
-                        "distance": single_flight["air_time"]
-                    }
-                    al.add_last(array, dict_flight)
-                    airline[single_flight["carrier"]["flights"]] = array
-                    airline[single_flight["carrier"]["duration"]] += int(single_flight["air_time"])
-                    airline[single_flight["carrier"]["distance"]] += int(single_flight["distance"])
-                else:
-                    array = al.new_list()
-                    dict_flight = {
-                        "id": single_flight["id"],
-                        "flight": single_flight["flight"],
-                        "date_programmer":single_flight["date"]+ "-" + single_flight["sched_dep_time"],
-                        "origin": single_flight["origin"],
-                        "dest": single_flight["dest"],
-                        "duration": single_flight["air_time"]
-                    }
-                    airline[single_flight["carrier"]["duration"]] = int(single_flight["air_time"])
-                    airline[single_flight["carrier"]["distance"]] = int(single_flight["distance"])
-                    al.add_last(array, dict_flight)
-                    airline[single_flight["carrier"]["flights"]] = array
+            if single_flight["date"] != "Unknown" and single_flight["sched_dep_time"] != "Unknown":
+                if date[0] <= single_flight["date"] <= date[1] and time[0] <= single_flight["sched_dep_time"] <= time[1]:
+                    result["total_airports"] += 1
+                    if single_flight["carrier"] in airline:
+                        array =airline[single_flight["carrier"]["flights"]]
+                        dict_flight = {
+                            "id": single_flight["id"],
+                            "flight": single_flight["flight"],
+                            "date programmer":single_flight["date"]+ "-" + single_flight["sched_dep_time"],
+                            "origin": single_flight["origin"],
+                            "dest": single_flight["dest"],
+                            "distance": single_flight["air_time"]
+                        }
+                        al.add_last(array, dict_flight)
+                        airline[single_flight["carrier"]["flights"]] = array
+                        airline[single_flight["carrier"]["duration"]] += int(single_flight["air_time"])
+                        airline[single_flight["carrier"]["distance"]] += int(single_flight["distance"])
+                    else:
+                        array = al.new_list()
+                        dict_flight = {
+                            "id": single_flight["id"],
+                            "flight": single_flight["flight"],
+                            "date_programmer":single_flight["date"]+ "-" + single_flight["sched_dep_time"],
+                            "origin": single_flight["origin"],
+                            "dest": single_flight["dest"],
+                            "duration": single_flight["air_time"]
+                        }
+                        airline[single_flight["carrier"]["duration"]] = int(single_flight["air_time"])
+                        airline[single_flight["carrier"]["distance"]] = int(single_flight["distance"])
+                        al.add_last(array, dict_flight)
+                        airline[single_flight["carrier"]["flights"]] = array
     for key in airline:
         total_distance = airline[key]["distance"]/ airline[key]["flights"]["size"]
         total_duration = airline[key]["duration"]/ airline[key]["flights"]["size"]

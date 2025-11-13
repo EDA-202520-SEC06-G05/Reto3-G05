@@ -40,6 +40,7 @@ def is_red(my_node):
     Raises:
         Exception
     """
+    
     return my_node["color"] == RED
 
 def get_value(my_node):
