@@ -5,126 +5,174 @@ from DataStructures.List import array_list as al
 from DataStructures.List import single_linked_list as sl
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.Tree import red_black_tree as rbt
-from DataStructures.Tree import rbt_node as rn
 from DataStructures.Priority_queue import priority_queue as pq
 import csv
 
 
 data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/Challenge-3'
-
+# Funciones para la carga de datos
 def new_logic():
     """
     Crea el catalogo para almacenar las estructuras de datos
     """
-    analyzer = {
+    catalog = {
         "flights": None,
     }
-    analyzer["flights"] = lp.new_map(304000, 0.7, None)
-    return analyzer
+    
+    catalog["flights"] = lp.new_map(304000, 0.7, None)
+    
+    return catalog
     #TODO: Llama a las funciónes de creación de las estructuras de datos
 
-# Funciones para la carga de datos
-    
 def load_data(catalog, filename):
     """
     Carga los datos del reto
     """
-    flight = load_flights(catalog)
+    flight = load_flights(catalog,filename)
     return flight
     # TODO: Realizar la carga de datos
 
-def load_flights(analyzer):
+def load_flights(analyzer,filename):
     
     inicio = get_time()
     flight_total = 0
     flights_rbt = rbt.new_map()
     
-    flight_file = data_dir + "/flights_small.csv"
-    input_file = csv.DictReader(open(flight_file, encoding="utf-8"), delimeter=",")
+    flight_file = data_dir + "/flights_small.csv" # Aca luego de las pruebas cambiar por filename
+    input_file = csv.DictReader(open(flight_file, encoding="utf-8"), delimiter=",")
+    
     for flight in input_file:
+        for each in flight:
+            if flight[each] is None or flight[each] == "":
+                flight[each] = "Unknown"
+                
         add_flights(analyzer, flight)
         flight_total += 1
+        if flight["date"] != "Unknown" and flight["sched_dep_time"] != "Unknown":
+            date_str = flight["date"]              
+            date_parts = date_str.split("-")    
+            year = int(date_parts[0])
+            month = int(date_parts[1])
+            day = int(date_parts[2])
+            date_int = year * 10000 + month * 100 + day
+            time_str = flight["sched_dep_time"]
+            partes = time_str.split(":")
+            hh = int(partes[0])
+            mm = int(partes[1])
+            sched_int = hh * 100 + mm
+            key_rbt = date_int * 10000 + sched_int
         
-        date_str = flight["date"]              
-        date_parts = date_str.split("-")    
-        year = int(date_parts[0])
-        month = int(date_parts[1])
-        day = int(date_parts[2])
-        date_int = year * 10000 + month * 100 + day
-        
-        time_str = flight["sched_dep_time"]
-        partes = time_str.split(":")
-        hh = int(partes[0])
-        mm = int(partes[1])
-        sched_int = hh * 100 + mm
-        
-        key_rbt = date_int * 10000 + sched_int
-        rbt.put(flights_rbt, key_rbt, flight) 
-        "Verificar que sea correcto y si el api de rbt lo permite si no volver a la version anterior"
-        
+            #Implementar una forma para evitar colisiones en las llaves y la perdidad de los datos
+            if rbt.contains(flights_rbt, key_rbt):
+                array = rbt.get(flights_rbt, key_rbt)
+                al.add_last(array, flight)
+                rbt.put(flights_rbt, key_rbt, array)
+            else:
+                array = al.new_list()
+                al.add_last(array, flight)
+                rbt.put(flights_rbt, key_rbt, array) 
+
     ordered = rbt.value_set(flights_rbt)
     total = ordered["size"]
     
     first5 = sl.new_list()
-    last5 = sl.new_list()
-    
+    centinela = True
     i = 0
-    while i < total:
+    while i < total and centinela:
         if i < 5:
             flight = sl.get_element(ordered, i)
-            clean_return = {
-                "date": flight["date"],
-                "dep_time": flight["dep_time"],
-                "arr_time": flight["arr_time"],
-                "airline_code": flight["carrier"],
-                "airline_name": flight["airline"],
-                "tailnum": flight["tailnum"],
-                "origin": flight["origin"],
-                "dest": flight["dest"],
-                "air_time": flight["air_time"],
-                "distance": flight["distance"]
-            }
-            sl.add_last(first5, clean_return)
+            if flight["size"] == 1:
+                clean_return = {
+                    "date": flight["elements"][0]["date"],
+                    "dep_time": flight["elements"][0]["dep_time"],
+                    "arr_time": flight["elements"][0]["arr_time"],
+                    "airline_code": flight["elements"][0]["carrier"],
+                    "airline_name": flight["elements"][0]["airline"],
+                    "tailnum": flight["elements"][0]["tailnum"],
+                    "origin": flight["elements"][0]["origin"],
+                    "dest": flight["elements"][0]["dest"],
+                    "air_time": flight["elements"][0]["air_time"],
+                    "distance": flight["elements"][0]["distance"]
+                }
+                sl.add_last(first5, clean_return)
+            else:
+                for each in flight["elements"]:
+                    clean_return ={
+                    "date": each["date"],
+                    "dep_time": each["dep_time"],
+                    "arr_time": each["arr_time"],
+                    "airline_code": each["carrier"],
+                    "airline_name": each["airline"],
+                    "tailnum": each["tailnum"],
+                    "origin": each["origin"],
+                    "dest": each["dest"],
+                    "air_time": each["air_time"],
+                    "distance": each["distance"]
+                    }
+                    sl.add_last(first5, clean_return)
+                    if first5["size"] == 5:
+                        centinela = False
+            if first5["size"] == 5:
+                centinela = False
         i += 1
-    
-    last_start = total -5
-    if last_start < 0:
-        last_start = 0
         
-    i2= last_start
-    while i2 < total:
-        if i2 >= last_start:
-            flight = sl.get_element(ordered, i2)
+    #Implementacion mejorada para obtener los ultimos 5 elementos
+    last5 = sl.sub_list(ordered, total -5, total)
+    last5_cleaned = sl.new_list()
+    i2= 0
+    centinela = True
+    while i2 < last5["size"] and centinela:
+        flight = sl.get_element(ordered, i2)
+        if flight["size"] == 1:
             clean_return = {
-                "date": flight["date"],
-                "dep_time": flight["dep_time"],
-                "arr_time": flight["arr_time"],
-                "airline_code": flight["carrier"],
-                "airline_name": flight["airline"],
-                "tailnum": flight["tailnum"],
-                "origin": flight["origin"],
-                "dest": flight["dest"],
-                "air_time": flight["air_time"],
-                "distance": flight["distance"]
+                "date": flight["elements"][0]["date"],
+                "dep_time": flight["elements"][0]["dep_time"],
+                "arr_time": flight["elements"][0]["arr_time"],
+                "airline_code": flight["elements"][0]["carrier"],
+                "airline_name": flight["elements"][0]["airline"],
+                "tailnum": flight["elements"][0]["tailnum"],
+                "origin": flight["elements"][0]["origin"],
+                "dest": flight["elements"][0]["dest"],
+                "air_time": flight["elements"][0]["air_time"],
+                "distance": flight["elements"][0]["distance"]
             }
-            sl.add_last(last5, clean_return)
+            sl.add_last(last5_cleaned, clean_return)
+        else:
+            for each in flight["elements"]:
+                clean_return ={
+                "date": each["date"],
+                "dep_time": each["dep_time"],
+                "arr_time": each["arr_time"],
+                "airline_code": each["carrier"],
+                "airline_name": each["airline"],
+                "tailnum": each["tailnum"],
+                "origin": each["origin"],
+                "dest": each["dest"],
+                "air_time": each["air_time"],
+                "distance": each["distance"]
+                }
+                sl.add_last(last5_cleaned, clean_return)
+                if last5_cleaned["size"] == 5:
+                    centinela = False
+        if last5_cleaned["size"] == 5:
+            centinela = False
         i2 +=1
-    fin = get_time()
     
+    fin = get_time()
     return {
-        "tiempo_ms": fin - inicio, 
+        "tiempo_ms": delta_time(inicio, fin),
         "total_vuelos": flight_total,
         "primeros5": first5,
-        "ultimos5": last5
+        "ultimos5": last5_cleaned
     }                        
-        
-def add_flights(analyzer, fligh):
-    flight_map = analyzer["flights"]
+
+def add_flights(catalog, fligh):
+    
+    flight_map = catalog["flights"]
     key = int(fligh["id"])
     lp.put(flight_map, key, fligh)
-    return analyzer    
-    
-    
+    return catalog    
+
 # Funciones de consulta sobre el catálogo
 def req_1(catalog, airline_code, min_delay, max_delay):
     start=get_time()
@@ -279,8 +327,6 @@ def req_2(catalog, code, min, max):
     Retorna el resultado del requerimiento 2
     """
     # TODO: Modificar el requerimiento 2
-    
-
 
 def req_3(catalog, airline, code_airport , distance):
     """
@@ -293,19 +339,29 @@ def req_3(catalog, airline, code_airport , distance):
         "last" : None
         
     }
-    tree = rbt.new_map()
     
-    map = catalog["flights"]
-    table = map["table"]
+    tree = rbt.new_map()
+    table = catalog["flights"]["table"]
     for each in table["elements"]:
         if each != None:
             single_flight = each["value"]
             if single_flight["carrier"] == airline and single_flight["dest"] == code_airport and distance[0] <=  int(single_flight["distance"]) <= distance[1]:
-                result["total_flights"] += 1
-                if rbt.contains(tree, single_flight["distance"]):
-                    value_array = rbt.get(tree, single_flight["distance"])
-                    al.add_last(value_array, single_flight)
-                    rbt.put(tree, single_flight["distance"], value_array)
+                result["total_flights"] += 1 
+                
+                if rbt.contains(tree, int(single_flight["distance"])):
+                    value_array = rbt.get(tree, int(single_flight["distance"]))
+                    dict_flight = {
+                        "id": single_flight["id"],
+                        "flight": single_flight["flight"],
+                        "date": single_flight["date"],
+                        "airline_name": single_flight["name"],
+                        "airline_code": single_flight["carrier"],
+                        "origin": single_flight["origin"],
+                        "dest": single_flight["dest"],
+                        "distance": int(single_flight["distance"])
+                    }
+                    al.add_last(value_array, dict_flight)
+                    rbt.put(tree, int(single_flight["distance"]), value_array)
                 else:
                     array = al.new_list()
                     dict_flight = {
@@ -316,47 +372,89 @@ def req_3(catalog, airline, code_airport , distance):
                         "airline_code": single_flight["carrier"],
                         "origin": single_flight["origin"],
                         "dest": single_flight["dest"],
-                        "distance": float(single_flight["distance"])
+                        "distance": int(single_flight["distance"]),
                     }
                     al.add_last(array,dict_flight)
-                    rbt.put(tree, single_flight["distance"],array)
+                    rbt.put(tree, int(single_flight["distance"]),array)
+    
     def default_criteria (flight1, flight2):
-        if flight1["arr_time"] < flight2["arr_time"]:
+        date_str = flight1["date"]              
+        date_parts = date_str.split("-")    
+        year = int(date_parts[0])
+        month = int(date_parts[1])
+        day = int(date_parts[2])
+        date_int = year * 10000 + month * 100 + day
+        arr = lp.get(catalog["flights"], int(flight1["id"]))
+        time_str = arr["value"]["arr_time"]
+        partes = time_str.split(":")
+        hh = int(partes[0])
+        mm = int(partes[1])
+        sched_int = hh * 100 + mm
+        first = date_int * 10000 + sched_int
+        date_str2 = flight2["date"]
+        date_parts2 = date_str2.split("-")
+        year2 = int(date_parts2[0])
+        month2 = int(date_parts2[1])
+        day2 = int(date_parts2[2])
+        date_int2 = year2 * 10000 + month2 * 100 + day2
+        arr2= lp.get(catalog["flights"], int(flight2["id"]))
+        time_str2 = arr2["value"]["arr_time"]
+        partes2 = time_str2.split(":")
+        hh2 = int(partes2[0])
+        mm2 = int(partes2[1])
+        sched_int2 = hh2 * 100 + mm2
+        first2 = date_int2 * 10000 + sched_int2
+        if first < first2:
             return True
         else:
             return False
-        
+
     values = rbt.value_set(tree)
     if values["size"] > 0:
-            last5 = al.new_list()
-            i = 1
-            while i <= values["size"]:
+        #Modificar para obtener los primeros y ultimos 5 vuelos no todos
+            first = al.new_list()
+            i = 0
+            centinela = True
+            while i < values["size"] and centinela:
                 element = sl.get_element(values, i)
                 if element["size"] >= 2:
                     sort = al.merge_sort(element, default_criteria)
-                    for each in sort:
-                        al.add_last(last5, each)
+                    for each in sort["elements"]:
+                        al.add_last(first, each)
+                        if first["size"] == 5:
+                            centinela = False
                 else:
-                    al.add_last(last5, element["elements"][0])
+                    al.add_last(first, element["elements"][0])
+                if first["size"] == 5:
+                    centinela = False
                 i += 1
             
-            total = last5["size"]
-            if total < 10:
-                result["first"] = last5
-                del result["last"]
-            else:
-                result["first"] = al.sublist(last5, 0, 5) 
-                result["last"] = al.sublist(last5, last5["size"] -5, last5["size"])   
+            last = sl.sub_list(values, values["size"] -5, values["size"])
+            last_cleaned = al.new_list()
+            i2 = 0
+            centinela = True
+            while i2 < last["size"] and centinela:
+                element = sl.get_element(last, i2)
+                if element["size"] >= 2:
+                    sort = al.merge_sort(element, default_criteria)
+                    for each in sort["elements"]:
+                        al.add_last(last_cleaned, each)
+                        if last_cleaned["size"] == 5:
+                            centinela = False
+                else:
+                    al.add_last(last_cleaned, element["elements"][0])
+                if last_cleaned["size"] == 5:
+                    centinela = False
+                i2 += 1
+            result["first"] = first
+            result["last"] = last_cleaned
     else:
         result["first"] = al.new_list()
         result["last"] = al.new_list()
     final = get_time()
-    result["time"] = final - result["time"]
+    result["time"] = delta_time(final, result["time"])
     return result
-
     # TODO: Modificar el requerimiento 3
-
-
 
 def req_4(catalog,date,time,n):
     """
@@ -395,7 +493,7 @@ def req_4(catalog,date,time,n):
                     dict_flight = {
                         "id": single_flight["id"],
                         "flight": single_flight["flight"],
-                        "date programmer":single_flight["date"]+ "-" + single_flight["sched_dep_time"],
+                        "date_programmer":single_flight["date"]+ "-" + single_flight["sched_dep_time"],
                         "origin": single_flight["origin"],
                         "dest": single_flight["dest"],
                         "duration": single_flight["air_time"]
@@ -412,7 +510,7 @@ def req_4(catalog,date,time,n):
             if flight["distance"] < minor["distance"]:
                 minor = flight
             elif flight["distance"] == minor["distance"]:
-                if flight["date programmer"] > minor["date programmer"]:
+                if flight["date_programmer"] > minor["date_programmer"]:
                     minor = flight
     
         
@@ -447,8 +545,6 @@ def req_4(catalog,date,time,n):
     al.sub_list(array, 0 ,n)
     result["airports"] = array
     return result
-    "Falta terminar el ultimo filtro que es por letra y seleccionar los n primeros y sale"
-    
     # TODO: Modificar el requerimiento 4
 
 def req_5(catalog,dest_code,date_min,date_max,N):
@@ -660,16 +756,12 @@ def req_6(catalog, fech_min, fech_max, dist_min, dist_max, m):
     
     # TODO: Modificar el requerimiento 6
 
-
-
 # Funciones para medir tiempos de ejecucion
-
 def get_time():
     """
     devuelve el instante tiempo de procesamiento en milisegundos
     """
     return float(time.perf_counter()*1000)
-
 
 def delta_time(start, end):
     """
