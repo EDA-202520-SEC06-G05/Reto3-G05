@@ -424,8 +424,8 @@ def req_3(catalog, airline, code_airport , distance):
             al.add_last(last_cleaned, element["elements"][0])
         i2 += 1
 
-    result["first"] = first
-    result["last"] = last_cleaned
+        result["first"] = first
+        result["last"] = last_cleaned
     else:
         result["first"] = al.new_list()
         result["last"] = al.new_list()
