@@ -75,7 +75,7 @@ def print_req_3(control):
         Función que imprime la solución del Requerimiento 3 en consola
     """
     airline_code = input("Código de la aerolínea a analizar: ").upper()
-    airline = input("Nombre de la aerolínea a analizar: ").upper()
+    airline = input("Codigo del areopuerto: ").upper()
     min_distance = int(input("Valor minimo de distancia en millas: "))
     max_distance = int(input("Valor máximo de distancia en millas: "))
     answer = lg.req_3(control, airline_code, airline, (min_distance, max_distance))

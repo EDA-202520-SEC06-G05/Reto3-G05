@@ -126,7 +126,6 @@ def add_flights(catalog, fligh):
     al.add_last(flight_map, t)
     return catalog 
 
-
 # Funciones de consulta sobre el catálogo
 def req_1(catalog, airline_code, min_delay, max_delay):
     start=get_time()
@@ -218,44 +217,40 @@ def req_2(catalog, code, time):
     filtered_no = 0
     for i in range(catalog["flights"]["size"]):
         single_flight = catalog["flights"]["elements"][i]
-
-        if single_flight is  None:
-            pass
-        else:
-            if single_flight["dest"] != "Unknown" and single_flight["arr_time"] != "Unknown" and single_flight["sched_arr_time"] != "Unknown":
-                arr_time = str(single_flight["arr_time"])
-                sched_arr_time = str(single_flight["sched_arr_time"])
+        arr_time = str(single_flight["arr_time"])
+        sched_arr_time = str(single_flight["sched_arr_time"])
                 
-                arr_time_h, arr_time_s = arr_time.split(":")
-                sched_arr_time_h, sched_arr_time_s = sched_arr_time.split(":")
+        arr_time_h, arr_time_s = arr_time.split(":")
+        sched_arr_time_h, sched_arr_time_s = sched_arr_time.split(":")
                 
-                arr_time_minutes = int(arr_time_h) *60 + int(arr_time_s)
-                sched_arr_time_minutes = int(sched_arr_time_h) *60 + int(sched_arr_time_s)
+        arr_time_minutes = int(arr_time_h) *60 + int(arr_time_s)
+        sched_arr_time_minutes = int(sched_arr_time_h) *60 + int(sched_arr_time_s)
                 
-                delay = arr_time_minutes - sched_arr_time_minutes
-                if delay < -720:
-                    delay += 1440
-                elif delay > 720:
-                    delay -= 1440
+        delay = arr_time_minutes - sched_arr_time_minutes
+        if delay < -720:
+            delay += 1440
+        elif delay > 720:
+            delay -= 1440
                     
-                if (single_flight["dest"] == code) and (min <= delay <= max):
-                    filtered_no += 1
-                    flight_date = str(single_flight["date"])
-                    y, m ,d = flight_date.split("-")
-                    date_int = int(y) * 10000 + int(m)*100 + int(d)
-                    arr_int = int(arr_time_h)* 100 + int(arr_time_s)
-                    key = delay * 10000000000000 + date_int * 100000000 + arr_int * 10000 + int(single_flight["id"])
-                    req_flight = {
-                        "id": single_flight["id"],
-                        "flight": single_flight["flight"],
-                        "date": single_flight["date"],
-                        "airline_name": single_flight["name"],
-                        "airline_code": single_flight["carrier"],
-                        "origin": single_flight["origin"],
-                        "dest": single_flight["dest"],
-                        "early_minutes": delay
+        if (single_flight["dest"] == code) and (min <= delay <= max):
+            print(single_flight)
+            filtered_no += 1
+            flight_date = str(single_flight["date"])
+            y, m ,d = flight_date.split("-")
+            date_int = int(y) * 10000 + int(m)*100 + int(d)
+            arr_int = int(arr_time_h)* 100 + int(arr_time_s)
+            key = delay * 10000000000000 + date_int * 100000000 + arr_int * 10000 + int(single_flight["id"])
+            req_flight = {
+                    "id": single_flight["id"],
+                    "flight": single_flight["flight"],
+                    "date": single_flight["date"],
+                    "airline_name": single_flight["name"],
+                    "airline_code": single_flight["carrier"],
+                    "origin": single_flight["origin"],
+                    "dest": single_flight["dest"],
+                    "early_minutes": delay
                     }
-                    rbt.put(filtered_rbt, key, req_flight)
+            rbt.put(filtered_rbt, key, req_flight)
                     
     values = rbt.value_set(filtered_rbt)
     if values["size"] > 0:
@@ -316,38 +311,39 @@ def req_3(catalog, airline, code_airport , distance):
         
     }
     tree = rbt.new_map()
-    for single_flight in catalog["flights"]["elements"]:
-        if single_flight["carrier"] == "Unknown" and single_flight["dest"] == "Unknown" and single_flight["distance"] == "Unknown":
+    
+    for i in range(0,al.size(catalog["flights"])):
+        single_flight = al.get_element(catalog["flights"], i)
+        if single_flight["carrier"] == airline and single_flight["dest"] == code_airport and distance[0] <=  int(single_flight["distance"]) <= distance[1]:
             print(single_flight)
-            if single_flight["carrier"] == airline and single_flight["dest"] == code_airport and distance[0] <=  int(single_flight["distance"]) <= distance[1]:
-                result["total_flights"] += 1 
-                if rbt.contains(tree, int(single_flight["distance"])):
-                    value_array = rbt.get(tree, int(single_flight["distance"]))
-                    dict_flight = {
-                        "id": single_flight["id"],
-                        "flight": single_flight["flight"],
-                        "date": single_flight["date"],
-                        "airline_name": single_flight["name"],
-                        "airline_code": single_flight["carrier"],
-                        "origin": single_flight["origin"],
-                        "dest": single_flight["dest"],
-                        "distance": int(single_flight["distance"])
+            result["total_flights"] += 1 
+            if rbt.contains(tree, int(single_flight["distance"])):
+                value_array = rbt.get(tree, int(single_flight["distance"]))
+                dict_flight = {
+                    "id": single_flight["id"],
+                    "flight": single_flight["flight"],
+                    "date": single_flight["date"],
+                    "airline_name": single_flight["name"],
+                    "airline_code": single_flight["carrier"],
+                    "origin": single_flight["origin"],
+                    "dest": single_flight["dest"],
+                    "distance": int(single_flight["distance"])
                         }
-                    al.add_last(value_array, dict_flight)
-                else:
-                    array = al.new_list()
-                    dict_flight = {
-                        "id": single_flight["id"],
-                        "flight": single_flight["flight"],
-                        "date": single_flight["date"],
-                        "airline_name": single_flight["name"],
-                        "airline_code": single_flight["carrier"],
-                        "origin": single_flight["origin"],
-                        "dest": single_flight["dest"],
-                        "distance": int(single_flight["distance"]),
+                al.add_last(value_array, dict_flight)
+            else:
+                array = al.new_list()
+                dict_flight = {
+                    "id": single_flight["id"],
+                    "flight": single_flight["flight"],
+                    "date": single_flight["date"],
+                    "airline_name": single_flight["name"],
+                    "airline_code": single_flight["carrier"],
+                    "origin": single_flight["origin"],
+                    "dest": single_flight["dest"],
+                    "distance": int(single_flight["distance"]),
                         }
-                    al.add_last(array,dict_flight)
-                    rbt.put(tree, int(single_flight["distance"]),array)
+                al.add_last(array,dict_flight)
+                rbt.put(tree, int(single_flight["distance"]),array)
     
     def default_criteria (flight1, flight2):
         date_str = flight1["date"]              
