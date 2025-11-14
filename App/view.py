@@ -1,5 +1,5 @@
 import sys
-import tabulate
+from tabulate import tabulate
 from App import logic as lg
 from DataStructures.List import array_list as al
 from DataStructures.List import single_linked_list as sl
@@ -50,49 +50,9 @@ def print_req_1(control):
     airline_code = input("Código de la aerolínea a analizar: ").upper()
     min_delay = int(input("Valor minimo de retraso en minutos: "))
     max_delay = int(input("Valor máximo de retraso en minutos: "))
-    answer = lg.req_1(control, airline_code, min_delay, max_delay) # Corregir en la funcion en logic Sebastian
-    
+    answer = lg.req_1(control, airline_code, min_delay, max_delay)
     print("\n=== RESULTADO REQ 1 ===")
-    resumen = [
-    ["Tiempo de ejecución (ms)", f"{answer['time_ms']}"],
-    ["Número total de vuelos filtrados", answer["filtered_number"]],]
-    print(tabulate(resumen,headers=["Descripción", "Valor"],tablefmt="grid"))
-    
-    first = []
-    for i in range(answer["first5"]["size"]):
-        flight = sl.get_element(answer["first5"], i)
-        first.append([
-            flight["id"],
-            flight["flight"],
-            flight["date"],
-            flight["airline_name"],
-            flight["airline_code"],
-            flight["origin"],
-            flight["dest"],
-            flight["distance"],
-        ])
-    titulo = f"Primeros {len(first)} vuelos encontrados"
-    print(f"\n============ {"titulo"} ============")
-    print(tabulate(first,headers=["ID vuelo","Código vuelo","Fecha","Aerolínea","Carrier","Origen","Destino","Distancia (mi)",],tablefmt="grid",showindex=range(1, first["size"] + 1)))
-    
-    last = []
-    for i in range(answer["last5"]["size"]):
-        flight = sl.get_element(answer["last5"], i)
-        last.append([
-            flight["id"],
-            flight["flight"],
-            flight["date"],
-            flight["airline_name"],
-            flight["airline_code"],
-            flight["origin"],
-            flight["dest"],
-            flight["distance"],
-        ])
-    titulo = f"Últimos {len(last)} vuelos encontrados"
-    print(f"\n============ {"titulo"} ============")
-    print(tabulate(last,headers=["ID vuelo","Código vuelo","Fecha","Aerolínea","Carrier","Origen","Destino","Distancia (mi)",],tablefmt="grid",showindex=range(1, last["size"] + 1)))
     print (answer)
-    
     # TODO: Imprimir el resultado del requerimiento 1
     pass
 
@@ -113,7 +73,7 @@ def print_req_2(control):
     
     first = []
     for i in range(answer["first5"]["size"]):
-        flight = sl.get_element(answer["first5"], i)
+        flight = al.get_element(answer["first5"], i)
         first.append([
             flight["id"],
             flight["flight"],
@@ -130,7 +90,7 @@ def print_req_2(control):
     
     last = []
     for i in range(answer["last5"]["size"]):
-        flight = sl.get_element(answer["last5"], i)
+        flight = al.get_element(answer["last5"], i)
         last.append([
             flight["id"],
             flight["flight"],
@@ -157,48 +117,88 @@ def print_req_3(control):
     airline = input("Nombre de la aerolínea a analizar: ").upper()
     min_distance = int(input("Valor minimo de distancia en millas: "))
     max_distance = int(input("Valor máximo de distancia en millas: "))
-    answer = lg.req_3(control, airline_code, airline, (min_distance,max_distance))
-    
+    answer = lg.req_3(control, airline_code, airline, (min_distance, max_distance))
+
     print("\n=== RESULTADO REQ 3 ===")
     resumen = [
     ["Tiempo de ejecución (ms)", f"{answer['time']}"],
-    ["Número total de vuelos filtrados", answer["total_flights"]],]
-    print(tabulate(resumen,headers=["Descripción", "Valor"],tablefmt="grid"))
-    
+    ["Número total de vuelos filtrados", answer["total_flights"]],
+]
+    print(tabulate(resumen, headers=["Descripción", "Valor"], tablefmt="grid"))
+
+# =========================
+#  Primeros vuelos
+# =========================
     first = []
     for i in range(answer["first"]["size"]):
         flight = al.get_element(answer["first"], i)
         first.append([
-            flight["id"],
-            flight["flight"],
-            flight["date"],
-            flight["airline_name"],
-            flight["airline_code"],
-            flight["origin"],
-            flight["dest"],
-            flight["distance"],
-        ])
-    titulo = f"Primeros {len(first)} vuelos encontrados"
-    print(f"\n============ {"titulo"} ============")
-    print(tabulate(first,headers=["ID vuelo","Código vuelo","Fecha","Aerolínea","Carrier","Origen","Destino","Distancia (mi)",],tablefmt="grid",showindex=range(1, first["size"] + 1)))
-    
+        flight["id"],
+        flight["flight"],
+        flight["date"],
+        flight["airline_name"],
+        flight["airline_code"],
+        flight["origin"],
+        flight["dest"],
+        flight["distance"],
+    ])
+
+    titulo_first = f"Primeros {len(first)} vuelos encontrados"
+    print(f"\n============ {titulo_first} ============")
+    print(
+        tabulate(
+        first,
+        headers=[
+            "ID vuelo",
+            "Código vuelo",
+            "Fecha",
+            "Aerolínea",
+            "Carrier",
+            "Origen",
+            "Destino",
+            "Distancia (mi)",
+        ],
+        tablefmt="grid",
+        showindex=range(1, len(first) + 1)
+    )
+)
+
+# =========================
+#  Últimos vuelos
+# =========================
     last = []
     for i in range(answer["last"]["size"]):
         flight = al.get_element(answer["last"], i)
         last.append([
-            flight["id"],
-            flight["flight"],
-            flight["date"],
-            flight["airline_name"],
-            flight["airline_code"],
-            flight["origin"],
-            flight["dest"],
-            flight["distance"],
-        ])
-    titulo = f"Últimos {len(last)} vuelos encontrados"
-    print(f"\n============ {"titulo"} ============")
-    print(tabulate(last,headers=["ID vuelo","Código vuelo","Fecha","Aerolínea","Carrier","Origen","Destino","Distancia (mi)",],tablefmt="grid",showindex=range(1, last["size"] + 1)))
-    
+        flight["id"],
+        flight["flight"],
+        flight["date"],
+        flight["airline_name"],
+        flight["airline_code"],
+        flight["origin"],
+        flight["dest"],
+        flight["distance"],
+    ])
+
+    titulo_last = f"Últimos {len(last)} vuelos encontrados"
+    print(f"\n============ {titulo_last} ============")
+    print(
+    tabulate(
+        last,
+        headers=[
+            "ID vuelo",
+            "Código vuelo",
+            "Fecha",
+            "Aerolínea",
+            "Carrier",
+            "Origen",
+            "Destino",
+            "Distancia (mi)",
+        ],
+        tablefmt="grid",
+        showindex=range(1, len(last) + 1)
+    )
+)
     
     # TODO: Imprimir el resultado del requerimiento 3
     pass
@@ -213,13 +213,15 @@ def print_req_4(control):
     time_initial = input("Hora minima de la salida programada (HH:MM): ")
     time_final = input("Hora maxima de la salida programada (HH:MM): ")
     n = int(input("Número de aerolineas con mayor vuelos: "))
-    answer = lg.req_4(control, (date_initial,date_final), (time_initial, time_final), n)
+    answer = lg.req_4(control, (date_initial, date_final), (time_initial, time_final), n)
     print("\n=== RESULTADO REQ 4 ===")
+
     resumen = [
     ["Tiempo de ejecución (ms)", f"{answer['time']}"],
-    ["Número total de vuelos filtrados", answer["total_airports"]],]
-    print(tabulate(resumen,headers=["Descripción", "Valor"],tablefmt="grid"))
-    
+    ["Número total de vuelos filtrados", answer["total_airports"]],
+]
+    print(tabulate(resumen, headers=["Descripción", "Valor"], tablefmt="grid"))
+
     first = []
     for i in range(answer["airports"]["size"]):
         flight = al.get_element(answer["airports"], i)
@@ -231,10 +233,16 @@ def print_req_4(control):
             flight["dest"],
             flight["duration"],
         ])
+
     titulo = f"Primeros {len(first)} aeropuertos encontrados"
-    print(f"\n============ {"titulo"} ============")
-    print(tabulate(first,headers=["ID vuelo","Código vuelo","Fecha programada","Origen","Destino","Duracion (min)",],tablefmt="grid",showindex=range(1, first["size"] + 1)))
-    
+    print(f"\n============ {titulo} ============")
+
+    print(tabulate(
+        first,
+        headers=["ID vuelo","Código vuelo","Fecha programada","Origen","Destino","Duracion (min)",],
+        tablefmt="grid",
+        showindex=range(1, len(first) + 1)
+    ))
     
     # TODO: Imprimir el resultado del requerimiento 4
     pass
