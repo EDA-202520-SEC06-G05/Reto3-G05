@@ -40,7 +40,6 @@ def is_red(my_node):
     Raises:
         Exception
     """
-    
     if my_node is None:
         return False
     return my_node["color"] == RED

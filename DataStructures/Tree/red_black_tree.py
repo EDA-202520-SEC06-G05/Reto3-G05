@@ -65,24 +65,28 @@ def size(my_bst):
 
 def insert_node(root, key, value):
    
-   if root is not None:
-      if key < root["key"]:
-         root["left"] = insert_node(root["left"], key, value)
-      elif key > root["key"]:
-         root["right"] = insert_node(root["right"], key, value)
-      else:
-         root["value"] = value
-      if rb.is_red(root["right"]) and not rb.is_red(root["left"]):
-         root = rotate_left(root)
-      if rb.is_red(root["left"]) and rb.is_red(root["left"]["left"]):
-         root = rotate_right(root)
-      if rb.is_red(root["left"]) and rb.is_red(root["right"]):
-         flip_colors(root)
-   else:
-      return rb.new_node(key, value, "RED")
-   
-   root["size"] = size(root["left"]) + size(root["right"]) +1
-   return root
+    if root is None:
+        return rb.new_node(key, value, "RED")
+
+    if key < root["key"]:
+        root["left"] = insert_node(root["left"], key, value)
+    elif key > root["key"]:
+        root["right"] = insert_node(root["right"], key, value)
+    else:
+        root["value"] = value
+    if rb.is_red(root["right"]) and not rb.is_red(root["left"]):
+        root = rotate_left(root)
+
+    if root["left"] is not None and \
+       root["left"]["left"] is not None and \
+       rb.is_red(root["left"]) and rb.is_red(root["left"]["left"]):
+        root = rotate_right(root)
+
+    if rb.is_red(root["left"]) and rb.is_red(root["right"]):
+        flip_colors(root)
+
+    root["size"] = size(root["left"]) + size(root["right"]) + 1
+    return root
 
 def put(my_rbt, key, value):
    my_rbt["root"] = insert_node(my_rbt["root"], key, value)

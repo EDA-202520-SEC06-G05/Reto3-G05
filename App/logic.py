@@ -36,7 +36,9 @@ def load_flights(analyzer):
     
     inicio = get_time()
     flight_total = 0
-    flight_file = data_dir + "/flights_small.csv" # Aca luego de las pruebas cambiar por filename
+    flights_rbt = rbt.new_map()
+    
+    flight_file = data_dir + "/flights_large.csv" # Aca luego de las pruebas cambiar por filename
     input_file = csv.DictReader(open(flight_file, encoding="utf-8"), delimiter=",")
     array = al.new_list()
     for flight in input_file:
@@ -176,7 +178,10 @@ def req_1(catalog, airline_code, min_delay, max_delay):
         "filtered_number": filtered_no,
         "filtered_flights": al.new_list()}
 
-def req_2(catalog, code, min, max):
+def req_2(catalog, code, time):
+    
+    min = time[0]
+    max = time[1]
     
     start = get_time()
     filtered_rbt = rbt.new_map()
