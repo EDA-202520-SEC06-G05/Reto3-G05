@@ -190,10 +190,13 @@ def req_2(catalog, code, time):
         if flight["dest"] != "" and flight["arr_time"] != "" and flight["sched_arr_time"] != "":
             arr_time = str(flight["arr_time"])
             sched_arr_time = str(flight["sched_arr_time"])
+                
             arr_time_h, arr_time_s = arr_time.split(":")
             sched_arr_time_h, sched_arr_time_s = sched_arr_time.split(":")
+                
             arr_time_minutes = int(arr_time_h) *60 + int(arr_time_s)
             sched_arr_time_minutes = int(sched_arr_time_h) *60 + int(sched_arr_time_s)
+                
             delay = arr_time_minutes - sched_arr_time_minutes
             if delay < -720:
                 delay += 1440
@@ -206,7 +209,7 @@ def req_2(catalog, code, time):
                 y, m ,d = flight_date.split("-")
                 date_int = int(y) * 10000 + int(m)*100 + int(d)
                 arr_int = int(arr_time_h)* 100 + int(arr_time_s)
-                key = delay * 100000000 + date_int * 10000 + arr_int
+                key = delay * 10000000000000 + date_int * 100000000 + arr_int * 10000 + int(flight["id"])
                 req_flight = {
                     "id": flight["id"],
                     "flight": flight["flight"],
@@ -217,13 +220,7 @@ def req_2(catalog, code, time):
                     "dest": flight["dest"],
                     "early_minutes": delay
                     }
-                if rbt.contains(filtered_rbt, key):
-                    array = rbt.get(filtered_rbt, key)
-                    al.add_last(array, req_flight)
-                else:
-                    array = al.new_list()
-                    al.add_last(array, req_flight)
-                    rbt.put(filtered_rbt, key, array)
+                rbt.put(filtered_rbt, key, req_flight)
                     
     values = rbt.value_set(filtered_rbt)
     if values["size"] > 0:
@@ -264,13 +261,12 @@ def req_2(catalog, code, time):
                 "time_ms": fin - start,
                 "filtered_number": filtered_no,
                 "first5": first,
-            "   last5": last_cleaned}
-    fin = get_time()
-    return {
+                "last5": last_cleaned}
+    fin= get_time()
+    return{
         "time_ms": fin - start,
         "filtered_number": filtered_no,
-        "filtered_flights": al.new_list(),
-    }
+        "filtered_flights": al.new_list()}
     # TODO: Modificar el requerimiento 2
 
 def req_3(catalog, airline, code_airport , distance):
@@ -391,7 +387,7 @@ def req_3(catalog, airline, code_airport , distance):
         result["first"] = al.new_list()
         result["last"] = al.new_list()
     final = get_time()
-    result["time"] = delta_time(final, result["time"])
+    result["time"] = delta_time( result["time"], final)
     return result
     # TODO: Modificar el requerimiento 3
 
