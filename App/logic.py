@@ -160,7 +160,14 @@ def req_1(catalog, airline_code, min_delay, max_delay):
                     "origin": flight["origin"],
                     "dest": flight["dest"],
                     "delay_minutes": delay}
-                rbt.put(filtered_rbt, key, req_flight)
+                if rbt.contains(filtered_rbt, key):
+                    value_array = rbt.get(filtered_rbt, key)
+                    al.add_last(value_array, req_flight)
+                    rbt.put(filtered_rbt, key, value_array)
+                else:
+                    array = al.new_list()
+                    al.add_last(array, req_flight)
+                    rbt.put(filtered_rbt, key, array)
     values = rbt.value_set(filtered_rbt)
     if values["size"] > 0:
             first = al.new_list()
@@ -232,8 +239,7 @@ def req_2(catalog, code, time):
         elif delay > 720:
             delay -= 1440
                     
-        if (single_flight["dest"] == code) and (min <= delay <= max):
-            print(single_flight)
+        if (single_flight["dest"] == code) and (min <= delay <= max):   
             filtered_no += 1
             flight_date = str(single_flight["date"])
             y, m ,d = flight_date.split("-")
@@ -250,7 +256,14 @@ def req_2(catalog, code, time):
                     "dest": single_flight["dest"],
                     "early_minutes": delay
                     }
-            rbt.put(filtered_rbt, key, req_flight)
+            if rbt.contains(filtered_rbt, key):
+                value_array = rbt.get(filtered_rbt, key)
+                al.add_last(value_array, req_flight)
+                rbt.put(filtered_rbt, key, value_array)
+            else:
+                array = al.new_list()
+                al.add_last(array, req_flight)
+                rbt.put(filtered_rbt, key, array)
                     
     values = rbt.value_set(filtered_rbt)
     if values["size"] > 0:
@@ -314,10 +327,10 @@ def req_3(catalog, airline, code_airport , distance):
     
     for i in range(0,al.size(catalog["flights"])):
         single_flight = al.get_element(catalog["flights"], i)
-        if single_flight["carrier"] == airline and single_flight["dest"] == code_airport and distance[0] <=  int(single_flight["distance"]) <= distance[1]:
-            print(single_flight)
+        if single_flight["carrier"].strip().upper() == airline and single_flight["dest"].strip().upper() == code_airport and distance[0] <=  int(single_flight["distance"]) <= distance[1]:
             result["total_flights"] += 1 
             if rbt.contains(tree, int(single_flight["distance"])):
+                
                 value_array = rbt.get(tree, int(single_flight["distance"]))
                 dict_flight = {
                     "id": single_flight["id"],
@@ -330,6 +343,7 @@ def req_3(catalog, airline, code_airport , distance):
                     "distance": int(single_flight["distance"])
                         }
                 al.add_last(value_array, dict_flight)
+                rbt.put(tree, int(single_flight["distance"]),value_array)
             else:
                 array = al.new_list()
                 dict_flight = {
@@ -352,8 +366,8 @@ def req_3(catalog, airline, code_airport , distance):
         month = int(date_parts[1])
         day = int(date_parts[2])
         date_int = year * 10000 + month * 100 + day
-        arr = lp.get(catalog["flights"], int(flight1["id"]))
-        time_str = arr["value"]["arr_time"]
+        arr = al.get_element(catalog["flights"], int(flight1["id"]))
+        time_str = arr["arr_time"]
         partes = time_str.split(":")
         hh = int(partes[0])
         mm = int(partes[1])
@@ -365,8 +379,8 @@ def req_3(catalog, airline, code_airport , distance):
         month2 = int(date_parts2[1])
         day2 = int(date_parts2[2])
         date_int2 = year2 * 10000 + month2 * 100 + day2
-        arr2= lp.get(catalog["flights"], int(flight2["id"]))
-        time_str2 = arr2["value"]["arr_time"]
+        arr2= al.get_element(catalog["flights"], int(flight2["id"]))
+        time_str2 = arr2["arr_time"]
         partes2 = time_str2.split(":")
         hh2 = int(partes2[0])
         mm2 = int(partes2[1])
@@ -378,43 +392,40 @@ def req_3(catalog, airline, code_airport , distance):
             return False
 
     values = rbt.value_set(tree)
+
     if values["size"] > 0:
-            first = al.new_list()
-            i = 0
-            centinela = True
-            while i < values["size"] and centinela:
-                element = sl.get_element(values, i)
-                if element["size"] >= 2:
-                    sort = al.merge_sort(element, default_criteria)
-                    for each in sort["elements"]:
-                        al.add_last(first, each)
-                        if first["size"] == 5:
-                            centinela = False
-                else:
-                    al.add_last(first, element["elements"][0])
-                if first["size"] == 5:
-                    centinela = False
-                i += 1
-            
-            last = sl.sub_list(values, values["size"] -5, values["size"])
-            last_cleaned = al.new_list()
-            i2 = 0
-            centinela = True
-            while i2 < last["size"] and centinela:
-                element = sl.get_element(last, i2)
-                if element["size"] >= 2:
-                    sort = al.merge_sort(element, default_criteria)
-                    for each in sort["elements"]:
-                        al.add_last(last_cleaned, each)
-                        if last_cleaned["size"] == 5:
-                            centinela = False
-                else:
-                    al.add_last(last_cleaned, element["elements"][0])
+        first = al.new_list()
+        i = 0
+        centinela = True
+        while i < values["size"] and first["size"] < 5 and centinela:
+            element = sl.get_element(values, i)
+            if element["size"] >= 2:
+                for each in element["elements"]:
+                    al.add_last(first, each)
+                    if first["size"] == 5:
+                        centinela = False
+            else:
+                al.add_last(first, element["elements"][0])
+            i += 1
+
+
+    last = sl.sub_list(values, values["size"] - 5, values["size"])
+    last_cleaned = al.new_list()
+    i2 = 0
+    centinela = True
+    while i2 < last["size"] and last_cleaned["size"] < 5 and centinela:
+        element = sl.get_element(last, i2)
+        if element["size"] >= 2:
+            for each in element["elements"]:
+                al.add_last(last_cleaned, each)
                 if last_cleaned["size"] == 5:
                     centinela = False
-                i2 += 1
-            result["first"] = first
-            result["last"] = last_cleaned
+        else:
+            al.add_last(last_cleaned, element["elements"][0])
+        i2 += 1
+
+    result["first"] = first
+    result["last"] = last_cleaned
     else:
         result["first"] = al.new_list()
         result["last"] = al.new_list()
@@ -430,12 +441,11 @@ def req_4(catalog,date,time,n):
     result = {
         "time": get_time(),
         "total_airports": 0,
-        "airports": sl.new_list()
+        "airports": al.new_list()
     }
     airline = {}
     tree = rbt.new_map()
     for single_flight in catalog["flights"]["elements"]:
-        if single_flight !=None :
             if single_flight["date"] != "Unknown" and single_flight["sched_dep_time"] != "Unknown":
                 if date[0] <= single_flight["date"] <= date[1] and time[0] <= single_flight["sched_dep_time"] <= time[1]:
                     result["total_airports"] += 1
@@ -452,7 +462,7 @@ def req_4(catalog,date,time,n):
                         al.add_last(array, dict_flight)
                         airline[single_flight["carrier"]["flights"]] = array
                         airline[single_flight["carrier"]["duration"]] += int(single_flight["air_time"])
-                        airline[single_flight["carrier"]["distance"]] += int(single_flight["distance"])
+                        airline[single_flight["carrier"]["distance"]] += float(single_flight["distance"])
                     else:
                         array = al.new_list()
                         dict_flight = {
@@ -464,7 +474,7 @@ def req_4(catalog,date,time,n):
                             "duration": single_flight["air_time"]
                         }
                         airline[single_flight["carrier"]["duration"]] = int(single_flight["air_time"])
-                        airline[single_flight["carrier"]["distance"]] = int(single_flight["distance"])
+                        airline[single_flight["carrier"]["distance"]] = float(single_flight["distance"])
                         al.add_last(array, dict_flight)
                         airline[single_flight["carrier"]["flights"]] = array
     for key in airline:
